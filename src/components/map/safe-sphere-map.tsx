@@ -9,6 +9,7 @@ import type {
 } from "maplibre-gl";
 import { appConfig, hasSupabasePublicConfig } from "@/lib/config";
 import { demoIncidents } from "@/lib/demo-data";
+import { titleCaseStatus } from "@/lib/format";
 import { createClient } from "@/lib/supabase/client";
 import type { IncidentSeverity, MapIncident } from "@/types/domain";
 
@@ -67,6 +68,97 @@ function normalizeIncident(row: PublicIncidentRow): MapIncident {
     estimatedAffected: Number(row.estimated_affected ?? 0),
     updatedAt: row.updated_at,
   };
+}
+
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function renderIncidentPopup(incident: MapIncident): string {
+  const isSample = incident.id.startsWith("sample-");
+  const escapedTitle = escapeHtml(incident.title);
+  const escapedCode = escapeHtml(incident.code);
+  const escapedType = escapeHtml(incident.incidentType || "Emergency");
+  const formattedStatus = escapeHtml(titleCaseStatus(incident.status));
+  const sevLower = incident.severity.toLowerCase();
+
+  const latDir = incident.latitude >= 0 ? "N" : "S";
+  const lngDir = incident.longitude >= 0 ? "E" : "W";
+  const latFormatted = `${Math.abs(incident.latitude).toFixed(4)}° ${latDir}`;
+  const lngFormatted = `${Math.abs(incident.longitude).toFixed(4)}° ${lngDir}`;
+
+  const actionButtonHtml = !isSample
+    ? `<a class="map-popup-action-btn" href="/incidents/${encodeURIComponent(incident.id)}">
+        <span>View Incident Dossier</span>
+        <svg viewBox="0 0 16 16" width="13" height="13" fill="none" aria-hidden="true">
+          <path d="M3 8H13M13 8L9 4M13 8L9 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>`
+    : `<div class="map-popup-action-simulated">
+        <span class="simulated-dot"></span>
+        <span>Simulated Telemetry Record</span>
+      </div>`;
+
+  return `
+    <div class="map-popup-card">
+      <div class="map-popup-header">
+        <span class="map-pill map-pill-code">${escapedCode}</span>
+        <span class="map-pill map-pill-type">${escapedType}</span>
+      </div>
+      <div class="map-popup-title-block">
+        <h4 class="map-popup-title">${escapedTitle}</h4>
+        <div class="map-popup-coords">
+          <svg viewBox="0 0 16 16" width="11" height="11" fill="none" aria-hidden="true">
+            <path d="M8 1.5C5.5 1.5 3.5 3.5 3.5 6C3.5 9.5 8 14.5 8 14.5C8 14.5 12.5 9.5 12.5 6C12.5 3.5 10.5 1.5 8 1.5Z" stroke="#00FF66" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="8" cy="6" r="1.8" fill="#00FF66"/>
+          </svg>
+          <span>${latFormatted}, ${lngFormatted}</span>
+        </div>
+      </div>
+      <div class="map-popup-grid">
+        <div class="map-popup-tile">
+          <span class="tile-caption">SEVERITY</span>
+          <div class="tile-badge severity-${sevLower}">
+            <span class="badge-dot"></span>
+            <span>${incident.severity}</span>
+          </div>
+        </div>
+        <div class="map-popup-tile">
+          <span class="tile-caption">STATUS</span>
+          <div class="tile-badge status-${incident.status.toLowerCase().replace(/_/g, "-")}">
+            <span class="badge-dot pulse-beacon"></span>
+            <span>${formattedStatus}</span>
+          </div>
+        </div>
+        <div class="map-popup-tile">
+          <span class="tile-caption">EST. IMPACT</span>
+          <div class="tile-stat">
+            <svg viewBox="0 0 16 16" width="12" height="12" fill="none" aria-hidden="true">
+              <path d="M10.5 13.5v-1.5a2.5 2.5 0 0 0-2.5-2.5H4a2.5 2.5 0 0 0-2.5 2.5v1.5" stroke="#94a3b8" stroke-width="1.2"/>
+              <circle cx="6" cy="4.5" r="2.2" stroke="#94a3b8" stroke-width="1.2"/>
+              <path d="M13.5 13v-1a2 2 0 0 0-1.6-1.95" stroke="#94a3b8" stroke-width="1.2"/>
+            </svg>
+            <strong>${incident.estimatedAffected.toLocaleString()}</strong>
+            <small>ppl</small>
+          </div>
+        </div>
+        <div class="map-popup-tile">
+          <span class="tile-caption">NODE STATE</span>
+          <div class="tile-stat">
+            <span class="telemetry-chip ${isSample ? "chip-sim" : "chip-live"}">${isSample ? "SIMULATED" : "VERIFIED"}</span>
+          </div>
+        </div>
+      </div>
+      <div class="map-popup-footer">
+        ${actionButtonHtml}
+      </div>
+    </div>
+  `;
 }
 
 export function SafeSphereMap() {
@@ -256,44 +348,13 @@ export function SafeSphereMap() {
       node.setAttribute("aria-label", `${incident.severity} incident: ${incident.title}`);
       markerNodes.push(node);
 
-      const popupContent = document.createElement("div");
-      popupContent.className = "map-popup";
-
-      const title = document.createElement("strong");
-      title.textContent = incident.title;
-      popupContent.appendChild(title);
-
-      const code = document.createElement("span");
-      code.textContent = incident.code;
-      popupContent.appendChild(code);
-
-      const details = document.createElement("dl");
-      const rows = [
-        ["Severity", incident.severity],
-        ["Status", incident.status.replaceAll("_", " ")],
-        ["Affected", String(incident.estimatedAffected)],
-      ];
-
-      rows.forEach(([label, value]) => {
-        const row = document.createElement("div");
-        const term = document.createElement("dt");
-        const description = document.createElement("dd");
-        term.textContent = label;
-        description.textContent = value;
-        row.append(term, description);
-        details.appendChild(row);
-      });
-      popupContent.appendChild(details);
-
-      if (!incident.id.startsWith("sample-")) {
-        const detailLink = document.createElement("a");
-        detailLink.href = `/incidents/${incident.id}`;
-        detailLink.className = "map-popup-link";
-        detailLink.textContent = "View incident details →";
-        popupContent.appendChild(detailLink);
-      }
-
-      const popup = new maplibregl.Popup({ offset: 24 }).setDOMContent(popupContent);
+      const popup = new maplibregl.Popup({
+        offset: [0, -14],
+        closeButton: true,
+        closeOnClick: true,
+        className: "tactical-map-popup",
+        maxWidth: "320px",
+      }).setHTML(renderIncidentPopup(incident));
 
       const marker = new maplibregl.Marker({ element: node, anchor: "center" })
         .setLngLat([incident.longitude, incident.latitude])

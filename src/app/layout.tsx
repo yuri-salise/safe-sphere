@@ -21,7 +21,12 @@ export const metadata: Metadata = {
   description:
     "Next-generation real-time disaster coordination, resource readiness tracking, and immutable aid transparency ledger.",
   icons: {
-    icon: "/favicon.ico",
+    icon: [
+      { url: "/favicon.ico", sizes: "32x32" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: "/icon.svg",
   },
 };
 
