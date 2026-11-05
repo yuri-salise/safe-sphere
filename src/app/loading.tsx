@@ -1,11 +1,34 @@
+import { SafeSphereMark } from "@/components/brand/safe-sphere-logo";
+
 export default function GlobalLoading() {
   return (
     <div className="global-loading" role="status" aria-live="polite">
-      <div className="global-loading-card">
-        <span className="global-loader-mark" aria-hidden="true" style={{ background: "#000000", color: "#00ff66", border: "1px solid rgba(0,255,102,0.3)" }}>SS</span>
-        <span className="global-loading-spinner" aria-hidden="true" />
-        <strong>Loading Safe Sphere</strong>
-        <span>Synchronizing telemetry & operational data…</span>
+      <div className="global-loading-console">
+        <div className="radar-loader-wrapper" aria-hidden="true">
+          <div className="radar-ring" />
+          <div className="radar-ring-inner" />
+          <div className="radar-sweep" />
+          <div className="radar-core-logo">
+            <SafeSphereMark size="lg" />
+          </div>
+        </div>
+
+        <h2 className="global-loading-title">Safe Sphere Mission Control</h2>
+        <p className="global-loading-subtitle">
+          Synchronizing GIS hazard telemetry & crisis readiness matrix…
+        </p>
+
+        <div className="telemetry-progress-bar" aria-hidden="true">
+          <div className="telemetry-progress-fill" />
+        </div>
+
+        <div className="telemetry-status-terminal">
+          <span>
+            <i className="telemetry-ping-dot" />
+            TELEMETRY MESH ONLINE
+          </span>
+          <span>LATENCY &lt; 20ms</span>
+        </div>
       </div>
     </div>
   );
