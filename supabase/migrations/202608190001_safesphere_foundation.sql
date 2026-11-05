@@ -639,5 +639,5 @@ end $$;
 -- values (
 --   'Flood monitoring point', 'Flood', 'HIGH', 'ACTIVE',
 --   extensions.st_setsrid(extensions.st_makepoint(125.0499, 7.8582), 4326)::extensions.geography,
---   'Central Mindanao University, Musuan', 83
+--   'Central Operations Sector Zone A', 83
 -- );
