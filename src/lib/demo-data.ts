@@ -1,0 +1,40 @@
+import type { MapIncident } from "@/types/domain";
+
+export const demoIncidents: MapIncident[] = [
+  {
+    id: "sample-001",
+    code: "INC-2026-014",
+    title: "Flood monitoring point",
+    incidentType: "Flood",
+    severity: "HIGH",
+    status: "ACTIVE",
+    latitude: 7.8582,
+    longitude: 125.0499,
+    estimatedAffected: 83,
+    updatedAt: "2026-08-19T12:41:00+08:00",
+  },
+  {
+    id: "sample-002",
+    code: "INC-2026-015",
+    title: "Medical assistance staging",
+    incidentType: "Medical",
+    severity: "MODERATE",
+    status: "RESPONSE_ONGOING",
+    latitude: 7.8646,
+    longitude: 125.056,
+    estimatedAffected: 21,
+    updatedAt: "2026-08-19T12:27:00+08:00",
+  },
+  {
+    id: "sample-003",
+    code: "INC-2026-016",
+    title: "Relief distribution point",
+    incidentType: "Relief",
+    severity: "LOW",
+    status: "NEEDS_MET",
+    latitude: 7.853,
+    longitude: 125.044,
+    estimatedAffected: 46,
+    updatedAt: "2026-08-19T12:12:00+08:00",
+  },
+];
