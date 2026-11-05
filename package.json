@@ -1,0 +1,37 @@
+{
+  "name": "safe-sphere",
+  "version": "1.0.0",
+  "description": "Safe Sphere - Real-Time Disaster Coordination & Aid Transparency Platform",
+  "private": true,
+  "scripts": {
+    "prepare:maplibre": "node scripts/copy-maplibre-worker.mjs",
+    "predev": "npm run prepare:maplibre",
+    "dev": "next dev",
+    "prebuild": "npm run prepare:maplibre",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.12.4",
+    "@supabase/supabase-js": "^2.112.1",
+    "maplibre-gl": "^6.1.0",
+    "next": "16.3.1",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.1",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  },
+  "engines": {
+    "node": "22.x"
+  }
+}
